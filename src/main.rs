@@ -41,7 +41,7 @@ fn main() {
 
         for name in in_ports.iter() {
             if outport.is_connected_to(name.as_str()).unwrap() {
-                eprintln!("inp: {name} outp: {p}");
+                //eprintln!("inp: {name} outp: {p}");
                 ports.push(p.clone());
             }
         }
@@ -78,7 +78,7 @@ fn main() {
             jack::Client::new("qzt", jack::ClientOptions::NO_START_SERVER).expect("Client qzt");
         match client.connect_ports_by_name(from_port.as_str(), to_port.as_str()) {
             //inport.name().unwrap
-            Ok(()) => eprintln!("Registering {name} -> {}", to_port),
+            Ok(()) => (), //eprintln!("Registering {name} -> {}", to_port),
             Err(err) => {
                 eprintln!("Failed  {name} -> {} '{err}'", to_port);
             }
