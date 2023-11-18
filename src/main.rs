@@ -46,14 +46,6 @@ fn main() {
         let process_callback =
             move |_jc: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
                 let in_a_p: &[f32] = inport.as_slice(ps);
-                // if !in_a_p
-                //     .iter()
-                //     .filter(|x| *x != &0.0)
-                //     .collect::<Vec<&f32>>()
-                //     .is_empty()
-                // {
-                //     eprintln!("DATA ");
-                // }
                 for v in in_a_p {
                     let bytes = v.to_ne_bytes();
                     writer.write_all(&bytes).unwrap();
