@@ -3,3 +3,4 @@
 # Exclude output files
 *.raw
 *.wav
+Cargo.lock
