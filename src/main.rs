@@ -6,19 +6,27 @@
 //! 3. String holing path for output file
 //! All JACK notifications are also printed out.
 
+use serde::Serialize;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufWriter;
 use std::io::{self};
+
 fn main() {
-    // let mut args = env::args();
-    // let file_name = args.next().expect("Pass the file name prefix");
-    // let _file = File::create(file_name.as_str()).expect("Opening file {file_name}");
+    #[derive(Serialize)]
+    struct Description {
+        sample_rate: usize,
+        output_files: Vec<String>,
+    }
 
     // Create client
     let (client, _status) =
         jack::Client::new("jackrec_qzt", jack::ClientOptions::NO_START_SERVER).unwrap();
     // The `in_ports` that match "system:playback" are the audio output
+    let mut description = Description {
+        sample_rate: client.sample_rate(),
+        output_files: vec![],
+    };
     let in_ports = client.ports(Some("system:playback"), None, jack::PortFlags::IS_INPUT);
     let out_ports = client.ports(None, None, jack::PortFlags::IS_OUTPUT);
     let mut ports: Vec<String> = vec![];
@@ -42,6 +50,7 @@ fn main() {
         let to_port = inport.name().as_ref().unwrap().to_string();
         let fname = format!("{name}.raw");
         let file = File::create(fname.as_str()).expect("Opening file {name}");
+        description.output_files.push(fname);
         let mut writer = BufWriter::new(file);
         let process_callback =
             move |_jc: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
@@ -76,6 +85,8 @@ fn main() {
     for client in clients {
         client.deactivate().unwrap();
     }
+    let json_str = serde_json::to_string_pretty(&description).unwrap();
+    print!("{json_str}");
 }
 
 struct Notifications;
