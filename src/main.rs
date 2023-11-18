@@ -1,18 +1,24 @@
-//! Takes an audio input and output it to an audio output.
-//! Makes a copy of the audio in a file
-//! Three commandline arguments:
-//! 1. In port name
-//! 2. Out port name
-//! 3. String holing path for output file
-//! All JACK notifications are also printed out.
+//! Record all Jack audio channels playing audio output.  Output on
+//! stdout the sample rate and list of output files in JSON format
 
+use chrono::{DateTime, Utc};
 use serde::Serialize;
+use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufWriter;
 use std::io::{self};
-
 fn main() {
+    let mut args = env::args();
+    let prefix = if args.len() == 2 {
+        args.nth(1).unwrap()
+    } else if args.len() == 1 {
+        let now: DateTime<Utc> = Utc::now();
+        now.format("%Y%m%dT%H%M%S").to_string()
+    } else {
+        panic!("Wrong arguments: {args:?}")
+    };
+
     #[derive(Serialize)]
     struct Description {
         sample_rate: usize,
@@ -48,7 +54,7 @@ fn main() {
         let spec = jack::AudioIn;
         let inport = client.register_port(name, spec).unwrap();
         let to_port = inport.name().as_ref().unwrap().to_string();
-        let fname = format!("{name}.raw");
+        let fname = format!("{prefix}_{name}.raw");
         let file = File::create(fname.as_str()).expect("Opening file {name}");
         description.output_files.push(fname);
         let mut writer = BufWriter::new(file);
